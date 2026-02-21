@@ -235,14 +235,18 @@ namespace S1MAPI.Building.Structural
             GameObject right = PrimitiveBuilder.CreateBox($"{name}_Right", wallCenter + rightOffset, rightSize, _palette.WallColor, container.transform);
             ApplyWallMaterial(right);
 
-            // Top segment (above door)
+            // Top segment (wall above door)
             float topHeight = wallHeight - doorHeight;
-            Vector3 topSize = isVertical
-                ? new Vector3(_wallThickness, topHeight, doorWidth)
-                : new Vector3(doorWidth, topHeight, _wallThickness);
-            Vector3 topOffset = Vector3.up * (doorHeight / 2f + topHeight / 2f);
-            GameObject top = PrimitiveBuilder.CreateBox($"{name}_Top", wallCenter + topOffset, topSize, _palette.WallColor, container.transform);
-            ApplyWallMaterial(top);
+            if (topHeight > 0f)
+            {
+                Vector3 topSize = isVertical
+                    ? new Vector3(_wallThickness, topHeight, doorWidth)
+                    : new Vector3(doorWidth, topHeight, _wallThickness);
+                float topCenterY = wallHeight / 2f - topHeight / 2f;
+                Vector3 topOffset = Vector3.up * topCenterY;
+                GameObject top = PrimitiveBuilder.CreateBox($"{name}_Top", wallCenter + topOffset, topSize, _palette.WallColor, container.transform);
+                ApplyWallMaterial(top);
+            }
 
             return container;
         }
