@@ -89,6 +89,14 @@
       <HintPath>$(MonoAssembliesPath)\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
 
+    <!-- Terrain -->
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>$(MonoAssembliesPath)\UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>$(MonoAssembliesPath)\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+    </Reference>
+
     <!-- JSON Parsing -->
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(MonoAssembliesPath)\Newtonsoft.Json.dll</HintPath>
@@ -149,6 +157,14 @@
     <!-- Input Systems -->
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>$(Il2CppAssembliesPath)\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+
+    <!-- Terrain -->
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>$(Il2CppAssembliesPath)\UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>$(Il2CppAssembliesPath)\UnityEngine.TerrainPhysicsModule.dll</HintPath>
     </Reference>
 
     <!-- JSON Parsing -->

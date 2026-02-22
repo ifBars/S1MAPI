@@ -111,6 +111,35 @@ namespace S1MAPI.Utils
         }
 
         /// <summary>
+        /// Terrain and area clearing constants.
+        /// </summary>
+        public static class Terrain
+        {
+            /// <summary>
+            /// Default padding around clearing bounds in meters.
+            /// </summary>
+            public const float DefaultClearingPadding = 2f;
+
+            /// <summary>
+            /// Default name patterns for vegetation and natural clutter.
+            /// Used by the vegetation clearing pass to remove nature objects near buildings.
+            /// </summary>
+            public static readonly string[] DefaultVegetationKeywords =
+            {
+                "Rock", "Boulder", "Shrub", "Bush"
+            };
+
+            /// <summary>
+            /// Name patterns for objects protected from footprint destruction.
+            /// These typically extend far beyond the building and create visual gaps.
+            /// </summary>
+            public static readonly string[] DefaultProtectedKeywords =
+            {
+                "Road", "Sidewalk"
+            };
+        }
+
+        /// <summary>
         /// GLTF file format constants
         /// </summary>
         public static class Gltf
