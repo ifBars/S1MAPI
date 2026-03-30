@@ -132,23 +132,44 @@ namespace S1MAPI.Building
         
         #endregion
 
-        #region Public API - Grid Snapping
-        
+        #region Public API - Grid
+
         /// <summary>
-        /// Snap a position to a grid
+        /// Compute the grid cell size for a room with the given dimensions.
+        /// Returns the largest square cell size ≤ <see cref="Constants.Spatial.DefaultGridSize"/>
+        /// that evenly divides the room's X axis. The pathfinding grid uses this
+        /// same value so furniture placement and NPC navigation are always aligned.
         /// </summary>
-        /// <param name="position">The position to snap</param>
-        /// <param name="gridSize">The grid cell size</param>
-        /// <returns>The snapped position</returns>
-        public static Vector3 SnapToGrid(Vector3 position, float gridSize = Constants.Spatial.DefaultGridSize)
+        public static float ComputeGridCellSize(float roomX, float roomZ)
         {
-            return new Vector3(
-                Mathf.Round(position.x / gridSize) * gridSize,
-                Mathf.Round(position.y / gridSize) * gridSize,
-                Mathf.Round(position.z / gridSize) * gridSize
-            );
+            float target = Constants.Spatial.DefaultGridSize;
+            int nx = Mathf.Max(1, Mathf.CeilToInt(roomX / target));
+            int nz = Mathf.Max(1, Mathf.CeilToInt(roomZ / target));
+            return Mathf.Min(roomX / nx, roomZ / nz);
         }
-        
+
+
+        /// <summary>
+        /// Check whether a transform belongs to a living entity (player/NPC) by
+        /// looking for a <see cref="NavMeshAgent"/> or <see cref="CharacterController"/>
+        /// anywhere in its root hierarchy.
+        /// Results are cached in the provided sets for efficiency.
+        /// </summary>
+        /// <returns>true if the transform's root contains a NavMeshAgent or CharacterController.</returns>
+        internal static bool IsLivingEntity(Transform t, HashSet<int> livingRoots, HashSet<int> staticRoots)
+        {
+            int rootId = t.root.GetInstanceID();
+            if (livingRoots.Contains(rootId)) return true;
+            if (staticRoots.Contains(rootId)) return false;
+
+            Transform root = t.root;
+            bool isLiving = root.GetComponentInChildren<NavMeshAgent>() != null
+                         || root.GetComponentInChildren<CharacterController>() != null;
+
+            (isLiving ? livingRoots : staticRoots).Add(rootId);
+            return isLiving;
+        }
+
         #endregion
 
         #region Public API - Hierarchy Organization

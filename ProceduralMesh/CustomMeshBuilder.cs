@@ -195,7 +195,9 @@ namespace S1MAPI.ProceduralMesh
 
             GameObject go = new GameObject(_name);
             go.AddComponent<MeshFilter>().mesh = mesh;
-            go.AddComponent<MeshRenderer>().material = _material ?? MaterialPresets.Opaque(Color.white);
+            var renderer = go.AddComponent<MeshRenderer>();
+            renderer.material = _material ?? MaterialPresets.Opaque(Color.white);
+            renderer.renderingLayerMask = uint.MaxValue;
 
             DebugLog.Info($"Created GameObject: {_name}");
             return go;

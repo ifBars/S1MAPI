@@ -37,9 +37,9 @@ namespace S1MAPI.Extensions
         /// </summary>
         public static void DestroyChildren(this Transform transform)
         {
-            foreach (Transform child in transform)
+            for (int i = 0; i < transform.childCount; i++)
             {
-                Object.Destroy(child.gameObject);
+                Object.Destroy(transform.GetChild(i).gameObject);
             }
         }
 

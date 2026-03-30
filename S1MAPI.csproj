@@ -27,6 +27,7 @@
   <!-- Mono build for base game mono assemblies -->
    <PropertyGroup Condition="'$(Configuration)'=='Mono'">
      <TargetFramework>netstandard2.1</TargetFramework>
+     <AssemblyName>S1MAPI_Mono</AssemblyName>
      <DefineConstants>MONO</DefineConstants>
      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -34,6 +35,7 @@
   <!-- Il2Cpp build for MelonLoader net6 assemblies -->
    <PropertyGroup Condition="'$(Configuration)'=='Il2cpp'">
      <TargetFramework>net6.0</TargetFramework>
+     <AssemblyName>S1MAPI_Il2cpp</AssemblyName>
      <DefineConstants>IL2CPP</DefineConstants>
      <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -89,6 +91,14 @@
       <HintPath>$(MonoAssembliesPath)\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
 
+    <!-- Terrain -->
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>$(MonoAssembliesPath)\UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>$(MonoAssembliesPath)\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+    </Reference>
+
     <!-- JSON Parsing -->
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(MonoAssembliesPath)\Newtonsoft.Json.dll</HintPath>
@@ -96,6 +106,11 @@
     <!-- FishNet (Mono) -->
     <Reference Include="FishNet.Runtime">
       <HintPath>$(MonoAssembliesPath)\FishNet.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <!-- Harmony (via MelonLoader) -->
+    <Reference Include="0Harmony">
+      <HintPath>$(MonoMLPath)\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -151,6 +166,14 @@
       <HintPath>$(Il2CppAssembliesPath)\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
 
+    <!-- Terrain -->
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>$(Il2CppAssembliesPath)\UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>$(Il2CppAssembliesPath)\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+    </Reference>
+
     <!-- JSON Parsing -->
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(Il2CppAssembliesPath)\Newtonsoft.Json.dll</HintPath>
@@ -167,6 +190,11 @@
     <!-- FishNet (Il2Cpp) -->
     <Reference Include="Il2CppFishNet.Runtime">
       <HintPath>$(Il2CppAssembliesPath)\Il2CppFishNet.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <!-- Harmony (via MelonLoader) -->
+    <Reference Include="0Harmony">
+      <HintPath>$(Il2CppMLAssembliesPath)\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

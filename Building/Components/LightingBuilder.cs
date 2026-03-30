@@ -58,7 +58,7 @@ namespace S1MAPI.Building.Components
 
             float xStep = _roomSize.x / (xCount + 1);
             float zStep = _roomSize.z / (zCount + 1);
-            float yPos = _roomSize.y - 0.2f; // Just below ceiling
+            float yPos = _roomSize.y - 0.3f; // Below ceiling (ceiling sits inside room at _roomSize.y - thickness)
 
             for (int x = 1; x <= xCount; x++)
             {

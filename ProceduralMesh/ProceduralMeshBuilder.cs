@@ -218,6 +218,7 @@ namespace S1MAPI.ProceduralMesh
             GameObject go = new GameObject(_name);
             MeshFilter filter = go.AddComponent<MeshFilter>();
             MeshRenderer renderer = go.AddComponent<MeshRenderer>();
+            renderer.renderingLayerMask = uint.MaxValue;
 
             filter.mesh = mesh;
 

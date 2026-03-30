@@ -60,9 +60,9 @@ namespace S1MAPI.Extensions
         public static GameObject SetLayerRecursively(this GameObject gameObject, int layer)
         {
             gameObject.layer = layer;
-            foreach (Transform child in gameObject.transform)
+            for (int i = 0; i < gameObject.transform.childCount; i++)
             {
-                SetLayerRecursively(child.gameObject, layer);
+                SetLayerRecursively(gameObject.transform.GetChild(i).gameObject, layer);
             }
             return gameObject;
         }

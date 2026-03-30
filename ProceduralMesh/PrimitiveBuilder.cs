@@ -254,15 +254,25 @@ namespace S1MAPI.ProceduralMesh
         #region Public API - Lighting
 
         /// <summary>
-        /// Create a point light
+        /// Create a point light with URP-correct defaults matching Schedule I's pipeline.
         /// </summary>
+        /// <param name="name">GameObject name</param>
+        /// <param name="localPosition">Local position relative to parent</param>
+        /// <param name="color">Light color</param>
+        /// <param name="range">Light range in meters</param>
+        /// <param name="intensity">Light intensity</param>
+        /// <param name="parent">Optional parent transform</param>
+        /// <param name="shadows">Shadow mode (default: None to match game's URP settings)</param>
+        /// <param name="renderMode">Render mode (default: ForcePixel for URP per-pixel lighting)</param>
         public static GameObject CreatePointLight(
             string name,
             Vector3 localPosition,
             Color color,
             float range,
             float intensity,
-            Transform? parent = null)
+            Transform? parent = null,
+            LightShadows shadows = LightShadows.None,
+            LightRenderMode renderMode = LightRenderMode.ForcePixel)
         {
             GameObject lightObj = new GameObject(name);
             if (parent != null)
@@ -276,8 +286,9 @@ namespace S1MAPI.ProceduralMesh
             light.color = color;
             light.range = range;
             light.intensity = intensity;
-            light.shadows = LightShadows.Soft;
-            
+            light.shadows = shadows;
+            light.renderMode = renderMode;
+
             return lightObj;
         }
 

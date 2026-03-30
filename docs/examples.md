@@ -173,6 +173,82 @@ interior.AddChair(new Vector3(4, 0, 4), Quaternion.Euler(0, 180, 0));
 interior.Build();
 ```
 
+### Advanced Building (Terrain, Navigation, & Networked Doors)
+
+This complete example demonstrates how to prep the environment using `TerrainClearer` and `FlattenTerrain`, utilize complex wall openings like door and window combinations, generate an interior A* `NavigationBuilder` for NPC pathfinding, and place multiplayer-synced interactables securely using `PrefabPlacer` connected to FishNet.
+
+```csharp
+using S1MAPI.Building;
+using S1MAPI.Building.Components;
+using S1MAPI.Building.Config;
+using S1MAPI.Building.Structural;
+using S1MAPI.S1;
+using S1MAPI.Utils;
+using UnityEngine;
+
+public static class StorefrontSpawner
+{
+    private static NavigationBuilder _navBuilder;
+
+    public static void SpawnStorefront(Vector3 position)
+    {
+        BuildingBuilder builder = new BuildingBuilder("CoffeeShop")
+            .DefineRoom(12f, 4f, 10f)
+            .AddFloor()
+            .AddCeiling()
+            // Storefront: Central door, flanking windows
+            .AddWalls(
+                south: WallOpening.DoorWithWindows(
+                    doorWidth: 1.8f, doorHeight: 2.2f,
+                    leftWindow: WallOpening.Window(width: 1.5f, height: 2.0f, sillHeight: 0.5f, count: 1),
+                    rightWindow: WallOpening.Window(width: 1.5f, height: 2.0f, sillHeight: 0.5f, count: 1)
+                ),
+                north: null, east: null, west: null
+            )
+            .AddFoundation(height: 0.2f)
+            .AddBaseMolding()
+            .AddCornerTrim()
+            // Backroom divider 6 meters inward along the Z-axis
+            .AddInteriorWall(InteriorWallAxis.X, 6f, opening: WallOpening.Door(1.2f, 2.1f))
+            // Finish with a polished parapet style roof
+            .AddParapetRoof(ParapetPreset.Shallow);
+
+        GameObject coffeeShop = builder.Build();
+        coffeeShop.transform.position = position;
+
+        // 1. Clear terrain foliage and trees that would clip through the shop
+        TerrainClearer.ClearAroundBuilding(coffeeShop, new Vector3(12f, 4f, 10f), new ClearingOptions { Padding = 2f });
+
+        // 2. Flatten the terrain directly underneath
+        builder.FlattenTerrain();
+
+        // 3. Build A* NPC navigation grid for the interior (Must scan around our created walls)
+        _navBuilder = builder.CreateNavigationBuilder();
+        _navBuilder.Build();
+
+        // 4. Place networked doors via PrefabPlacer for FishNet multiplayer replication
+        PrefabPlacer placer = new PrefabPlacer(coffeeShop.transform);
+
+        // Entrance door
+        placer.Place(
+            Prefabs.MetalGlassDoor, 
+            new Vector3(6f, 0f, 0f), 
+            Quaternion.identity, 
+            networked: true, 
+            enableComponents: true
+        );
+
+        // Interior backroom door
+        placer.Place(
+            Prefabs.ClassicalWoodenDoor, 
+            new Vector3(6f, 0f, 6f), 
+            Quaternion.identity, 
+            networked: true
+        );
+    }
+}
+```
+
 ## GLTF Examples
 
 ### Load from Embedded Resource

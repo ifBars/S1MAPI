@@ -1,8 +1,9 @@
 # Coding Standards
 
 S1MAPI is a mesh and building construction library for Schedule 1 mods.
-The core principle: **avoid ScheduleOne types** to remain resilient across game updates.
-S1MAPI uses Unity primitives and FishNet only—no `Assembly-CSharp` references.
+The core principle: **no compile-time dependencies on ScheduleOne types** to remain resilient across game updates.
+S1MAPI uses Unity primitives and FishNet only—no `Assembly-CSharp` imports. Where game-type
+interaction is unavoidable, use reflection with graceful fallbacks.
 
 ## General Best Practice
 * Review the codebase thoroughly before submitting a PR.
@@ -170,8 +171,10 @@ public ProceduralMeshBuilder AddBox(...) { ... }
 * Group related members together using regions.
 
 ## What **NOT** to Do
-* **Do not** reference ScheduleOne types (`Assembly-CSharp.dll`).
-  This is the core rule—S1MAPI must remain update-resilient.
+* **Do not** add compile-time references to ScheduleOne types (`Assembly-CSharp.dll`).
+  S1MAPI must remain update-resilient—no `using ScheduleOne.*` imports or direct type usage.
+  When interaction with game types is unavoidable (e.g. NPC navigation), use **reflection**
+  with graceful fallbacks so the code degrades safely if the game changes.
 * **Do not** use magic strings—prefer enums or constants.
 * **Do not** ignore compiler warnings.
 * **Do not** leave commented-out code in commits.

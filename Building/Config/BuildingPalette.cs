@@ -19,9 +19,17 @@ namespace S1MAPI.Building.Config
 
         /// <summary>Wall material (optional, uses color if null)</summary>
         public Material? WallMaterial { get; set; }
-        
+
         /// <summary>Wall color (used if WallMaterial is null)</summary>
         public Color WallColor { get; set; } = new Color(0.9f, 0.85f, 0.7f);
+
+        /// <summary>Interior wall material for the room-facing side of exterior walls.
+        /// When null, exterior walls use a single material on all faces.</summary>
+        public Material? InteriorWallMaterial { get; set; }
+
+        /// <summary>Interior wall color (used when InteriorWallMaterial is null).
+        /// Defaults to WallColor when null.</summary>
+        public Color? InteriorWallColor { get; set; }
 
         /// <summary>Ceiling material (optional, uses color if null)</summary>
         public Material? CeilingMaterial { get; set; }
@@ -66,6 +74,8 @@ namespace S1MAPI.Building.Config
             FloorColor = FloorColor,
             WallMaterial = WallMaterial,
             WallColor = WallColor,
+            InteriorWallMaterial = InteriorWallMaterial,
+            InteriorWallColor = InteriorWallColor,
             CeilingMaterial = CeilingMaterial,
             CeilingColor = CeilingColor,
             TrimMaterial = TrimMaterial,
@@ -93,6 +103,17 @@ namespace S1MAPI.Building.Config
         public BuildingPalette WithWalls(Material material)
         {
             WallMaterial = material;
+            return this;
+        }
+
+        /// <summary>
+        /// Set interior wall material and return this palette for chaining.
+        /// When set, exterior wall faces use <see cref="WallMaterial"/> and room-facing
+        /// faces use this material.
+        /// </summary>
+        public BuildingPalette WithInteriorWalls(Material material)
+        {
+            InteriorWallMaterial = material;
             return this;
         }
 

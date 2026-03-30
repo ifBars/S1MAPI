@@ -129,13 +129,18 @@ interior.AddPrefab(Prefabs.ATM, position, rotation, networked: true);
 interior.Build();
 ```
 
-**Component Builders:**
+**Component Builders & Core Systems:**
 - `WallBuilder` - Wall and opening generation
+- `InteriorWallBuilder` - Interior wall and opening generation
 - `InteriorBuilder` - Interior furniture and decoration placement using S1 meshes
 - `FurnitureBuilder` - Procedural furniture creation (used internally by BuildingBuilder)
 - `LightingBuilder` - Light fixture placement
-- `DecorBuilder` - Decorative elements (trim, pillars, foundations)
-- `PrefabPlacer` - Prefab instantiation with networking
+- `DecorBuilder` - Decorative elements (trim, pillars, foundations, stairs)
+- `RoofBuilder` - Parapet and hip roof generation
+- `PrefabPlacer` - Prefab instantiation with networking (integrates with `NetworkedPrefabLinker`)
+- `NavigationBuilder` & `InteriorPathGrid` - Custom A* NPC Pathfinding
+- `TerrainClearer` & `TerrainFlattener` - Environment preparation
+- `BuildingPartRegistry` - Post-build querying of generated geometry
 
 ## GLTF API (S1MAPI.Gltf)
 

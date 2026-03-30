@@ -84,7 +84,7 @@ namespace S1MAPI.Core
         /// <remarks>
         /// <para><strong>WARNING:</strong> Only use this method for prefabs that do NOT have a NetworkObject component.</para>
         /// <para>
-        /// For prefabs with NetworkObject components (networked prefabs), you MUST use <see cref="InstantiateNetworked"/> instead.
+        /// For prefabs with NetworkObject components (networked prefabs), you MUST use <see cref="InstantiateNetworked()"/> instead.
         /// Using this method on networked prefabs will cause FishNet to crash and break multiplayer functionality.
         /// </para>
         /// <para>
@@ -139,6 +139,43 @@ namespace S1MAPI.Core
         /// <exception cref="System.InvalidOperationException">Thrown if called on client when not server</exception>
         public GameObject? InstantiateNetworked()
         {
+            return InstantiateNetworkedCore(null, Vector3.zero, Quaternion.identity, activate: true);
+        }
+
+        /// <summary>
+        /// Instantiate and spawn a networked prefab, positioned before network spawn.
+        /// Sets the transform BEFORE calling FishNet Spawn() so that clients receive
+        /// the correct world position via replication (critical for prefabs without NetworkTransform).
+        /// </summary>
+        /// <param name="parent">Parent transform (set before spawn)</param>
+        /// <param name="localPosition">Local position relative to parent</param>
+        /// <param name="localRotation">Local rotation relative to parent</param>
+        /// <returns>The instantiated and network-spawned GameObject, or null if not server or prefab not found</returns>
+        public GameObject? InstantiateNetworked(Transform parent, Vector3 localPosition, Quaternion localRotation)
+        {
+            return InstantiateNetworkedCore(parent, localPosition, localRotation, activate: true);
+        }
+
+        /// <summary>
+        /// Instantiate and spawn a networked prefab without activating it.
+        /// The caller is responsible for calling <c>SetActive(true)</c> after configuration.
+        /// Used by <see cref="Building.Components.PrefabPlacer"/> to invoke onReady callbacks
+        /// before Awake/OnEnable fire (prevents sensors from triggering with default config).
+        /// </summary>
+        internal GameObject? InstantiateNetworkedInactive(Transform parent, Vector3 localPosition, Quaternion localRotation)
+        {
+            return InstantiateNetworkedCore(parent, localPosition, localRotation, activate: false);
+        }
+
+        private GameObject? InstantiateNetworkedCore(Transform? parent, Vector3 localPosition, Quaternion localRotation, bool activate)
+        {
+            var nm = InstanceFinder.NetworkManager;
+            if (nm == null || !nm.IsServer)
+            {
+                DebugLog.Warning($"[PrefabRef] InstantiateNetworked called but not server — skipping '{Name}'.");
+                return null;
+            }
+
             var prefab = Find();
             if (prefab == null)
             {
@@ -146,37 +183,40 @@ namespace S1MAPI.Core
                 return null;
             }
 
-            // Store original active state
             bool originalState = prefab.activeSelf;
-            
-            // Temporarily disable the prefab to prevent Awake() during instantiation
             prefab.SetActive(false);
-
-            // Instantiate with components inactive
             GameObject? instance = UnityEngine.Object.Instantiate(prefab);
-
-            // Restore prefab's original state
             prefab.SetActive(originalState);
 
             if (instance == null) return null;
 
-            // Initialize GUID fields on components before Awake() runs
-            // This fixes prefabs like ATM that parse GUIDs in Awake()
             InitializeGuidFields(instance);
 
-            // Spawn on network (assigns network GUID and calls OnStartServer)
-            if (InstanceFinder.NetworkManager != null && InstanceFinder.NetworkManager.IsServer)
+            // Set world position before Spawn() so FishNet broadcasts the correct transform.
+            // Parent AFTER Spawn to avoid issues with non-networked parent hierarchies.
+            if (parent != null)
             {
-                var netObj = instance.GetComponent<NetworkObject>();
-                if (netObj != null)
-                {
-                    InstanceFinder.NetworkManager.ServerManager.Spawn(netObj);
-                }
+                instance.transform.position = parent.TransformPoint(localPosition);
+                instance.transform.rotation = parent.rotation * localRotation;
             }
 
-            // Now activate the instance - Awake() will run with valid GUIDs
-            instance.SetActive(true);
-            
+            var netObj = instance.GetComponent<NetworkObject>();
+            if (netObj != null)
+            {
+                nm.ServerManager.Spawn(netObj);
+            }
+
+            // Parent after spawn (local operation, not replicated)
+            if (parent != null)
+            {
+                instance.transform.SetParent(parent);
+                instance.transform.localPosition = localPosition;
+                instance.transform.localRotation = localRotation;
+            }
+
+            if (activate)
+                instance.SetActive(true);
+
             return instance;
         }
 
