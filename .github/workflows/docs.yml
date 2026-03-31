@@ -66,12 +66,21 @@ jobs:
             echo "Warning: game-assemblies/Managed not found"
           fi
 
+          HARMONY_PATH=$(find game-assemblies -name "0Harmony.dll" -type f | head -1)
+          if [ -n "$HARMONY_PATH" ]; then
+            cp "$HARMONY_PATH" Assemblies/Mono/
+            echo "Copied 0Harmony.dll into Assemblies/Mono/"
+          else
+            echo "Warning: 0Harmony.dll not found in game-assemblies"
+          fi
+
       - name: Create CI Build Properties
         run: |
           cat > local.build.props << 'EOF'
           <Project>
               <PropertyGroup>
                   <MonoAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MonoAssembliesPath>
+                  <MelonLoaderAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MelonLoaderAssembliesPath>
                   <Il2CppAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Il2Cpp</Il2CppAssembliesPath>
               </PropertyGroup>
           </Project>
@@ -87,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: S1MAPI-Mono
-          path: bin/Mono/netstandard2.1/S1MAPI.dll
+          path: bin/Mono/netstandard2.1/S1MAPI_Mono.dll
 
       - name: Install DocFX
         run: dotnet tool install -g docfx

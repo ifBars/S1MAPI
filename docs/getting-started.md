@@ -45,7 +45,7 @@ The license only restricts copying the **specific examples** (the dispensary bui
 
 2. **Add S1MAPI reference**
    - Download the appropriate S1MAPI DLL from [releases](https://github.com/ifBars/S1MAPI/releases)
-   - Add `MAPI_Mono.dll` as a project reference
+   - Add `S1MAPI_Mono.dll` as a project reference
 
 3. **Build your mod**
    ```bash

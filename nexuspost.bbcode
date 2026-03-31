@@ -1,107 +1,70 @@
-[center][b][size=5]🏗️ MAPI - Schedule One Modding API[/size][/b]
-[i]A comprehensive building framework and modding API for Schedule One - create custom buildings, interiors, and game modifications[/i][/center]
+[center][b][size=5]S1MAPI - Schedule 1 Mapping API[/size][/b]
+[i]A mapping and construction library for Schedule 1 mods[/i][/center]
 
-[size=5][b]✨ What is MAPI?[/b][/size]
-
-MAPI is a comprehensive building framework and modding API designed specifically for Schedule One. It provides a robust foundation for creating custom buildings, interiors, and game modifications with an easy-to-use, component-based architecture.
-
-Perfect for modders who want to add custom structures and gameplay features without the hassle of asset bundles!
-
-[size=5][b]🎯 Who Needs This?[/b][/size]
+[size=5][b]What S1MAPI Does[/b][/size]
 
 [list]
-[*][b]Players[/b]: Only if you're using mods that declare MAPI as a requirement
-[*][b]Mod Developers[/b]: If you want a robust, component-based building framework and modding API for Schedule One
+[*][b]Procedural Meshes[/b]: Generate 3D shapes at runtime such as boxes, spheres, cylinders, and capsules
+[*][b]Building Construction[/b]: Create buildings with walls, floors, roofs, windows, and furniture
+[*][b]GLTF Loading[/b]: Import external 3D models without extra runtime dependencies
+[*][b]Update Resilience[/b]: Avoid ScheduleOne types so mods survive game updates more cleanly
 [/list]
 
-[size=5][b]🚀 Key Features[/b][/size]
-
-[list]
-[*][b]🏠 Building System[/b]: Complete building framework with support for walls, furniture, lighting, and structural elements
-[*][b]📦 Component Architecture[/b]: Modular component system for reusable building pieces and custom functionality
-[*][b]🎨 Procedural Meshes[/b]: Generate custom meshes programmatically with support for primitives and advanced mesh operations
-[*][b]📁 GLTF Importing[/b]: Built-in GLTF model loading and processing for importing custom 3D assets
-[*][b]🔧 Extension Methods[/b]: Comprehensive extension methods for Unity components, transforms, materials, and more
-[*][b]📋 Configuration System[/b]: Flexible configuration system with palette support for building presets
-[*][b]🎯 Game Integration[/b]: Seamless integration with Schedule One's materials, meshes, and prefabs
-[/list]
-
-[size=5][b]📦 Installation[/b][/size]
+[size=5][b]Installation[/b][/size]
 
 [b]For Players:[/b]
 
-If a mod you want to use requires MAPI:
+If a mod you want to use requires S1MAPI:
 
 [list=1]
-[*]Download the MAPI zip from the Files section
-[*]Extract the zip - it contains both [font=Courier New]MAPI-Mono.dll[/font] and [font=Courier New]MAPI-Il2Cpp.dll[/font]
-[*]Copy the correct DLL for your Steam branch to your game's [font=Courier New]UserLibs[/font] folder:
+[*]Download the S1MAPI package from the Files section
+[*]Extract the package. It includes [font=Courier New]UserLibs\S1MAPI_Mono.dll[/font] and [font=Courier New]UserLibs\S1MAPI_Il2Cpp.dll[/font]
+[*]Copy the correct DLL into your game's [font=Courier New]UserLibs[/font] folder:
 [list]
-[*][b]Regular Steam branch (default)[/b]: Use [font=Courier New]MAPI-Il2Cpp.dll[/font]
-[*][b]Alternate Steam branch[/b]: Use [font=Courier New]MAPI-Mono.dll[/font]
+[*][b]Regular Steam branch (default)[/b]: Use [font=Courier New]S1MAPI_Il2Cpp.dll[/font]
+[*][b]Alternate Steam branch[/b]: Use [font=Courier New]S1MAPI_Mono.dll[/font]
 [/list]
-[*]Launch the game - MAPI will load automatically with MelonLoader
+[*]Launch the game. S1MAPI will load automatically with MelonLoader.
 [/list]
 
-[b]To check your Steam branch:[/b] Right-click Schedule One in Steam → Properties → Betas. If it shows "None" or no selection, you're on the regular branch (use Il2Cpp).
+[b]To check your Steam branch:[/b] Right-click Schedule 1 in Steam -> Properties -> Betas. If it shows "None" or no selection, you are on the regular branch and should use the Il2Cpp DLL.
 
 [b]For Mod Developers:[/b]
 
-To use MAPI in your mod project:
-
 [list=1]
-[*]Add the [b]Mono[/b] MAPI DLL as a reference to your mod project (via NuGet or direct DLL reference)
-[*]Build your mod against the Mono DLL - it will work on both runtimes
-[*]Users will need to install MAPI separately as a dependency with the correct DLL for their Steam branch
+[*]Add the [b]Mono[/b] S1MAPI DLL as a reference to your mod project
+[*]Build your mod against the Mono DLL. It works for both runtimes.
+[*]Tell users to install S1MAPI separately with the correct DLL for their Steam branch.
 [/list]
 
-[size=5][b]🔨 Building from Source[/b][/size]
-
-For developers who want to build from source:
+[size=5][b]Building From Source[/b][/size]
 
 [list=1]
 [*]Clone the repository
 [*]Copy [font=Courier New]local.build.props.example[/font] to [font=Courier New]local.build.props[/font]
-[*]Edit [font=Courier New]local.build.props[/font] and set your game installation path
-[*]Build with [font=Courier New]dotnet build -c Mono[/font] or [font=Courier New]dotnet build -c Il2cpp[/font]
+[*]Edit [font=Courier New]local.build.props[/font] and set your game installation paths
+[*]Build with [font=Courier New]dotnet build S1MAPI.csproj -c Mono[/font] or [font=Courier New]dotnet build S1MAPI.csproj -c Il2cpp[/font]
 [/list]
 
-[size=5][b]⚙️ Requirements[/b][/size]
+[size=5][b]Requirements[/b][/size]
 
 [list]
+[*]Schedule 1
+[*]MelonLoader 0.7.0+
 [*].NET Framework 4.7.2+ or .NET 6.0+
-[*]MelonLoader (for mod development)
-[*]Schedule One game installation
 [/list]
 
-[size=5][b]📚 Documentation[/b][/size]
+[size=5][b]Learn More[/b][/size]
 
-Complete documentation, API reference, and getting started guides are available at:
-
-[center][url=https://ifbars.github.io/MAPI/][b][size=4]📖 MAPI Documentation[/size][/b][/url][/center]
-
-The documentation includes:
 [list]
-[*][b]Getting Started[/b]: Setup guide and your first MAPI project
-[*][b]API Reference[/b]: Complete reference for all classes, methods, and components
-[*][b]Building Guide[/b]: Creating custom buildings, interiors, and structures
-[*][b]Code Examples[/b]: Real-world usage patterns and samples
+[*][url=https://ifbars.github.io/S1MAPI/articles/getting-started.html]Getting Started[/url]
+[*][url=https://ifbars.github.io/S1MAPI/articles/examples.html]Examples[/url]
+[*][url=https://ifbars.github.io/S1MAPI/api/index.html]API Reference[/url]
+[*][url=https://github.com/ifBars/S1MAPI/blob/main/docs/contributing.md]Contributing Guide[/url]
 [/list]
 
-[size=5][b]📄 License[/b][/size]
+[size=5][b]License[/b][/size]
 
-MIT License - [url=https://github.com/ifBars/MAPI/blob/master/LICENSE]View License[/url]
+GNU GPL v3 License - [url=https://github.com/ifBars/S1MAPI/blob/main/LICENSE]View License[/url]
 
-[size=5][b]🤝 Contributing[/b][/size]
-
-We welcome contributions! See [url=https://github.com/ifBars/MAPI/blob/master/CONTRIBUTING.md]CONTRIBUTING.md[/url] for guidelines.
-
-[size=5][b]🔒 Security[/b][/size]
-
-If you discover a security vulnerability, please see [url=https://github.com/ifBars/MAPI/blob/master/SECURITY.md]SECURITY.md[/url] for reporting guidelines.
-
-[size=5][b]⚠️ Disclaimer[/b][/size]
-
-This modding API is provided "as-is" under the MIT License. The author is not responsible for any misuse, damages, or issues arising from its use. Users are responsible for complying with all applicable terms of service and licenses.
-
-[center][url=https://ifbars.github.io/MAPI/][b]📚 Documentation[/b][/url] • [url=https://github.com/ifBars/MAPI][b]GitHub Repository[/b][/url][/center]
+[center][url=https://ifbars.github.io/S1MAPI/][b]Documentation[/b][/url] • [url=https://github.com/ifBars/S1MAPI][b]GitHub Repository[/b][/url][/center]

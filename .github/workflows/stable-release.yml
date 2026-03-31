@@ -75,6 +75,13 @@ jobs:
             echo "Warning: game-assemblies/Managed not found"
           fi
 
+          HARMONY_PATH=$(find game-assemblies -name "0Harmony.dll" -type f | head -1)
+          if [ -n "$HARMONY_PATH" ]; then
+            cp "$HARMONY_PATH" Assemblies/Mono/
+          else
+            echo "Warning: 0Harmony.dll not found in game-assemblies"
+          fi
+
       - name: Create CI Build Properties
         if: steps.check_release.outputs.exists != 'true'
         run: |
@@ -82,6 +89,7 @@ jobs:
           <Project>
               <PropertyGroup>
                   <MonoAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MonoAssembliesPath>
+                  <MelonLoaderAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MelonLoaderAssembliesPath>
                   <Il2CppAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Il2Cpp</Il2CppAssembliesPath>
                   <Il2CppMLAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Il2Cpp</Il2CppMLAssembliesPath>
               </PropertyGroup>
@@ -205,13 +213,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          NUPKG=$(find bin/Mono -name "*.nupkg" | head -1)
+          NUPKG=$(find bin/Mono -name "S1MAPI.$VERSION.nupkg" -type f | head -1)
 
           echo "Creating Release v$VERSION"
 
           # Find actual DLL paths (without _Mono/_Il2cpp suffix)
-          MONO_DLL=$(find bin/Mono -name "S1MAPI.dll" -type f | head -1)
-          IL2CPP_DLL=$(find bin/Il2cpp -name "S1MAPI.dll" -type f | head -1)
+          MONO_DLL=$(find bin/Mono -name "S1MAPI_Mono.dll" -type f | head -1)
+          IL2CPP_DLL=$(find bin/Il2cpp -name "S1MAPI_Il2cpp.dll" -type f | head -1)
 
           echo "Found Mono DLL: $MONO_DLL"
           echo "Found IL2CPP DLL: $IL2CPP_DLL"
@@ -220,14 +228,14 @@ jobs:
           mkdir -p /tmp/release-files
 
           # Copy and rename for release (add suffix to distinguish)
-          cp "$MONO_DLL" /tmp/release-files/MAPI_Mono.dll
-          cp "$IL2CPP_DLL" /tmp/release-files/MAPI_Il2cpp.dll
+          cp "$MONO_DLL" /tmp/release-files/S1MAPI_Mono.dll
+          cp "$IL2CPP_DLL" /tmp/release-files/S1MAPI_Il2Cpp.dll
 
           gh release create "v$VERSION" \
             --title "S1MAPI v$VERSION" \
             --generate-notes \
-            "/tmp/release-files/MAPI_Mono.dll" \
-            "/tmp/release-files/MAPI_Il2cpp.dll" \
+            "/tmp/release-files/S1MAPI_Mono.dll" \
+            "/tmp/release-files/S1MAPI_Il2Cpp.dll" \
             "$NUPKG#NuGet Package"
 
       - name: Publish to NuGet
@@ -238,6 +246,6 @@ jobs:
           if [ -z "$NUGET_KEY" ]; then
             echo "NUGET_API_KEY not set. Skipping publish."
           else
-            NUPKG=$(find bin/Mono -name "*.nupkg" | head -1)
+            NUPKG=$(find bin/Mono -name "S1MAPI.${{ steps.get_version.outputs.version }}.nupkg" -type f | head -1)
             dotnet nuget push "$NUPKG" -k "$NUGET_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
           fi

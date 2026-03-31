@@ -54,12 +54,20 @@ jobs:
             echo "Warning: game-assemblies/Managed not found"
           fi
 
+          HARMONY_PATH=$(find game-assemblies -name "0Harmony.dll" -type f | head -1)
+          if [ -n "$HARMONY_PATH" ]; then
+            cp "$HARMONY_PATH" Assemblies/Mono/
+          else
+            echo "Warning: 0Harmony.dll not found in game-assemblies"
+          fi
+
       - name: Create CI Build Properties
         run: |
           cat > local.build.props << 'EOF'
           <Project>
               <PropertyGroup>
                   <MonoAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MonoAssembliesPath>
+                  <MelonLoaderAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MelonLoaderAssembliesPath>
                   <Il2CppAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Il2Cpp</Il2CppAssembliesPath>
                   <Il2CppMLAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Il2Cpp</Il2CppMLAssembliesPath>
               </PropertyGroup>
@@ -219,10 +227,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: S1MAPI-Mono-${{ steps.get_version.outputs.version }}-bleeding-edge
-          path: bin/Mono/netstandard2.1/S1MAPI.dll
+          path: bin/Mono/netstandard2.1/S1MAPI_Mono.dll
 
       - name: Upload IL2CPP Artifact
         uses: actions/upload-artifact@v4
         with:
           name: S1MAPI-Il2cpp-${{ steps.get_version.outputs.version }}-bleeding-edge
-          path: bin/Il2cpp/net6.0/S1MAPI.dll
+          path: bin/Il2cpp/net6.0/S1MAPI_Il2cpp.dll
