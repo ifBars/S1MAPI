@@ -19,4 +19,4 @@
     - name: Contributing
       href: docs/contributing.md
 - name: API Reference
-  href: api/
+  href: api/index.md

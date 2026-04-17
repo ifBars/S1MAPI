@@ -6,7 +6,7 @@
         {
           "src": "bin/Mono/netstandard2.1",
           "files": [
-            "S1MAPI.dll"
+            "S1MAPI_Mono.dll"
           ]
         }
       ],
@@ -18,8 +18,8 @@
       "force": true,
       "repo": {
         "remote": "https://github.com/ifBars/S1MAPI.git",
-        "branch": "main",
-        "path": "S1MAPI"
+        "branch": "stable",
+        "path": ""
       }
     }
   ],

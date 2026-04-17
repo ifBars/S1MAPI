@@ -371,4 +371,5 @@ assets/memories/
 ideas.txt
 
 _site/
-api/
+api/*
+!api/index.md
