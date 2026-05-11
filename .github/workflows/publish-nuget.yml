@@ -1,0 +1,135 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    branches:
+      - stable
+      - 'releases/**'
+    paths:
+      - S1MAPI.csproj
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout S1MAPI
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect Version Bump
+        id: version
+        shell: bash
+        run: |
+          NEW_VERSION=$(grep -oPm1 '(?<=<Version>)[^<]+' S1MAPI.csproj)
+
+          if [[ -z "$NEW_VERSION" ]]; then
+            echo "Unable to read current package version"
+            exit 1
+          fi
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+            echo "Publishing version $NEW_VERSION from manual dispatch"
+            exit 0
+          fi
+
+          OLD_VERSION=$(git show "${{ github.event.before }}:S1MAPI.csproj" 2>/dev/null | grep -oPm1 '(?<=<Version>)[^<]+' || true)
+
+          if [[ "$OLD_VERSION" == "$NEW_VERSION" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+            echo "Version unchanged at $NEW_VERSION; skipping publish"
+            exit 0
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version bump detected: ${OLD_VERSION:-none} -> $NEW_VERSION"
+
+      - name: Setup .NET
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Checkout Game Assemblies
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.GAME_ASSEMBLIES_REPO }}
+          token: ${{ secrets.GAME_REPOS_TOKEN }}
+          path: game-assemblies
+          fetch-depth: 1
+
+      - name: Prepare Build Inputs
+        if: steps.version.outputs.changed == 'true'
+        shell: bash
+        run: |
+          mkdir -p Assemblies/Mono
+
+          if [[ ! -d "game-assemblies/Managed" ]]; then
+            echo "Unable to locate game-assemblies/Managed"
+            exit 1
+          fi
+
+          cp -r game-assemblies/Managed/* Assemblies/Mono/
+
+          HARMONY_PATH=$(find game-assemblies -name "0Harmony.dll" -type f | head -1)
+          if [[ -n "$HARMONY_PATH" ]]; then
+            cp "$HARMONY_PATH" Assemblies/Mono/
+          else
+            echo "Unable to locate 0Harmony.dll in game-assemblies"
+            exit 1
+          fi
+
+          cat > local.build.props << 'EOF'
+          <Project>
+              <PropertyGroup>
+                  <MonoAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MonoAssembliesPath>
+                  <MelonLoaderAssembliesPath>$(MSBuildThisFileDirectory)Assemblies/Mono</MelonLoaderAssembliesPath>
+              </PropertyGroup>
+          </Project>
+          EOF
+
+      - name: Restore Dependencies
+        if: steps.version.outputs.changed == 'true'
+        run: dotnet restore S1MAPI.csproj -p:Configuration=Mono
+
+      - name: Build Package Assembly
+        if: steps.version.outputs.changed == 'true'
+        run: dotnet build S1MAPI.csproj --no-restore -c Mono -v minimal
+
+      - name: Pack NuGet Package
+        if: steps.version.outputs.changed == 'true'
+        run: dotnet pack S1MAPI.csproj --no-build --no-restore -c Mono /p:ContinuousIntegrationBuild=true
+
+      - name: Publish to NuGet
+        if: steps.version.outputs.changed == 'true'
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [[ -z "$NUGET_API_KEY" ]]; then
+            echo "NUGET_API_KEY is not configured"
+            exit 1
+          fi
+
+          PACKAGE=$(find bin/Mono -name "S1MAPI.${{ steps.version.outputs.new_version }}.nupkg" -type f | head -1)
+
+          if [[ -z "$PACKAGE" || ! -f "$PACKAGE" ]]; then
+            echo "Expected NuGet package was not produced for version ${{ steps.version.outputs.new_version }}"
+            exit 1
+          fi
+
+          echo "Publishing $PACKAGE"
+          dotnet nuget push "$PACKAGE" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
