@@ -232,15 +232,17 @@ namespace S1MAPI.Gltf.Processing
             // Metallic-roughness texture
             if (pbr.metallicRoughnessTexture != null)
             {
-                Texture2D? tex = GetTexture(context, pbr.metallicRoughnessTexture.index);
-                if (tex != null)
+                Texture2D? sourceTexture = GetTexture(context, pbr.metallicRoughnessTexture.index);
+                if (sourceTexture != null)
                 {
-                    // URP expects metallic in R channel and smoothness in A channel
-                    // GLTF has metallic in B channel and roughness in G channel
-                    // We'd need to convert this texture, for now just log a warning
-                    DebugLog.Warning($"MetallicRoughnessTexture requires channel remapping for URP. " +
-                        $"Material '{mat.name}' may not render correctly.");
-                    mat.SetTexture(UrpProperty.MetallicGlossMap, tex);
+                    Texture2D metallicSmoothness = GltfMaterialTextureConverter.CreateMetallicSmoothness(
+                        sourceTexture,
+                        metallic,
+                        roughness);
+                    context.RegisterTexture(metallicSmoothness);
+                    mat.SetTexture(UrpProperty.MetallicGlossMap, metallicSmoothness);
+                    mat.EnableKeyword("_METALLICSPECGLOSSMAP");
+                    SetMetallicSmoothness(mat, 1f, 1f);
                 }
             }
         }
@@ -282,10 +284,12 @@ namespace S1MAPI.Gltf.Processing
 
         private static void ApplyNormalTexture(GltfLoadContext context, Material mat, GltfNormalTextureInfo normalInfo)
         {
-            Texture2D? tex = GetTexture(context, normalInfo.index);
-            if (tex != null)
+            Texture2D? sourceTexture = GetTexture(context, normalInfo.index);
+            if (sourceTexture != null)
             {
-                mat.SetTexture(UrpProperty.BumpMap, tex);
+                Texture2D normalTexture = GltfMaterialTextureConverter.CreateLinearCopy(sourceTexture, "Normal");
+                context.RegisterTexture(normalTexture);
+                mat.SetTexture(UrpProperty.BumpMap, normalTexture);
                 mat.EnableKeyword("_NORMALMAP");
 
                 if (normalInfo.scale.HasValue)
@@ -297,10 +301,12 @@ namespace S1MAPI.Gltf.Processing
 
         private static void ApplyOcclusionTexture(GltfLoadContext context, Material mat, GltfOcclusionTextureInfo occlusionInfo)
         {
-            Texture2D? tex = GetTexture(context, occlusionInfo.index);
-            if (tex != null)
+            Texture2D? sourceTexture = GetTexture(context, occlusionInfo.index);
+            if (sourceTexture != null)
             {
-                mat.SetTexture(UrpProperty.OcclusionMap, tex);
+                Texture2D occlusionTexture = GltfMaterialTextureConverter.CreateLinearCopy(sourceTexture, "Occlusion");
+                context.RegisterTexture(occlusionTexture);
+                mat.SetTexture(UrpProperty.OcclusionMap, occlusionTexture);
                 mat.EnableKeyword("_OCCLUSIONMAP");
 
                 if (occlusionInfo.strength.HasValue)

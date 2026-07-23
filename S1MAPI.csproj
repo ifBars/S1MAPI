@@ -21,7 +21,7 @@
     <RepositoryUrl>https://github.com/ifBars/S1MAPI</RepositoryUrl>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
   </PropertyGroup>
 
   <!-- Mono build for base game mono assemblies -->

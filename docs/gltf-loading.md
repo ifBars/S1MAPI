@@ -118,6 +118,8 @@ if (glbData != null)
 
 - Materials are created using S1MAPI's default shader (URP Lit → Standard → Hidden/Internal-Colored)
 - Textures are applied if found in the GLTF file
+- Metallic-roughness textures are remapped from GLTF's blue/green channels to Unity's red/alpha metallic-smoothness layout
+- Normal and occlusion textures are converted to linear data textures before being assigned to the shader
 - Emission is supported with configurable intensity
 
 ### Custom Shader
@@ -191,6 +193,8 @@ public static class SignLoader
 3. **Emission intensity**: Higher values create brighter glow effects but check visual quality.
 
 4. **Resource cleanup**: GLTF imports create meshes, materials, and textures. Unity handles cleanup automatically when GameObjects are destroyed.
+
+5. **Packed material maps**: Metallic-roughness conversion creates a Unity-compatible runtime texture per material. Cache imported models instead of repeatedly loading the same asset.
 
 ## Troubleshooting
 

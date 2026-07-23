@@ -43,10 +43,12 @@ namespace S1MAPI.Gltf.Processing
                     Matrix4x4 mat = new Matrix4x4();
                     for (int c = 0; c < 4; c++)
                     {
-                        for (int r = 0; r < 4; r++)
-                        {
-                            mat[r, c] = node.matrix[c * 4 + r];
-                        }
+                        int offset = c * 4;
+                        mat.SetColumn(c, new Vector4(
+                            node.matrix[offset],
+                            node.matrix[offset + 1],
+                            node.matrix[offset + 2],
+                            node.matrix[offset + 3]));
                     }
                     
                     // Extract TRS

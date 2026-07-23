@@ -6,7 +6,7 @@ namespace S1MAPI.Utils
     internal static class Constants
     {
         public const string LIBRARY_NAME = "S1MAPI";
-        public const string LIBRARY_VERSION = "2.0.0";
+        public const string LIBRARY_VERSION = "2.0.1";
         public const string LIBRARY_AUTHOR = "Bars";
 
         /// <summary>
