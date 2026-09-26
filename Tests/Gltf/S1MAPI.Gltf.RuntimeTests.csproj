@@ -24,4 +24,3 @@
     <Reference Include="Il2Cppmscorlib" HintPath="$(GameAssemblies)/Il2Cppmscorlib.dll" Private="false" />
   </ItemGroup>
 </Project>
-
