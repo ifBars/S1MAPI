@@ -54,7 +54,7 @@ untouched. The test only needs the Menu scene; do not load a save.
    Clear the shell variable with `Remove-Item Env:\MAPI_GLB_TEST_RESULT`.
 
 Repeat with IL2CPP and a different result filename. Report each runtime separately.
-The result does not validate loaded-save gameplay, product/furniture registration,
+The result does not validate loaded-save gameplay, game-specific integration,
 networking, texture import, animation, skinning, or arbitrary GLBs.
 
 ## Covered behavior

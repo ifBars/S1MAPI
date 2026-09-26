@@ -5,7 +5,7 @@ Learn how to import external 3D models at runtime using S1MAPI's GLTF loader.
 ## Overview
 
 S1MAPI includes a runtime GLTF/GLB importer using Newtonsoft.Json and Unity.
-For embedded static product or furniture visuals, use self-contained GLB 2.0 bytes
+For static 3D models, use self-contained GLB 2.0 bytes
 with uncompressed triangle geometry. `GltfLoader.LoadGlb(byte[], Shader?)` remains
 the public entry point; call it on Unity's main thread after shaders are available.
 
