@@ -593,7 +593,7 @@ namespace S1MAPI.Gltf
             GltfRoot gltf = context.Root;
             byte[]? binaryBuffer = gltf.buffers?[0]?.Data;
 
-            List<GltfMeshResult> results = GltfMeshProcessor.ProcessMeshes(gltf, binaryBuffer);
+            List<GltfMeshResult> results = GltfMeshProcessor.ProcessMeshes(gltf, binaryBuffer, context.Options);
 
             // Register meshes
             foreach (GltfMeshResult result in results)
@@ -742,10 +742,7 @@ namespace S1MAPI.Gltf
                     {
                         defaultMat = GltfMaterialProcessor.CreateDefaultMaterial(context);
                     }
-                    else
-                    {
-                        meshMaterials[i] = defaultMat;
-                    }
+                    meshMaterials[i] = defaultMat!;
                 }
             }
 

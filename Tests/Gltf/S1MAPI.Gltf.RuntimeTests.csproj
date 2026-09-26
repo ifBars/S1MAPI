@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../local.build.props" Condition="Exists('../../local.build.props')" />
+  <PropertyGroup>
+    <TargetFramework Condition="'$(Configuration)' == 'Mono'">netstandard2.1</TargetFramework>
+    <TargetFramework Condition="'$(Configuration)' == 'Il2cpp'">net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Configurations>Mono;Il2cpp</Configurations>
+    <DefineConstants Condition="'$(Configuration)' == 'Il2cpp'">IL2CPP</DefineConstants>
+    <GameAssemblies Condition="'$(Configuration)' == 'Mono'">$(MonoAssembliesPath)</GameAssemblies>
+    <GameAssemblies Condition="'$(Configuration)' == 'Il2cpp'">$(Il2CppAssembliesPath)</GameAssemblies>
+    <LoaderAssemblies Condition="'$(Configuration)' == 'Mono'">$(MelonLoaderAssembliesPath)/../net35</LoaderAssemblies>
+    <LoaderAssemblies Condition="'$(Configuration)' == 'Il2cpp'">$(Il2CppMLAssembliesPath)</LoaderAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../S1MAPI.csproj" />
+    <Reference Include="MelonLoader" HintPath="$(LoaderAssemblies)/MelonLoader.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(GameAssemblies)/UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.ImageConversionModule" HintPath="$(GameAssemblies)/UnityEngine.ImageConversionModule.dll" Private="false" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Il2cpp'">
+    <Reference Include="Il2CppInterop.Runtime" HintPath="$(LoaderAssemblies)/Il2CppInterop.Runtime.dll" Private="false" />
+    <Reference Include="Il2Cppmscorlib" HintPath="$(GameAssemblies)/Il2Cppmscorlib.dll" Private="false" />
+  </ItemGroup>
+</Project>
+

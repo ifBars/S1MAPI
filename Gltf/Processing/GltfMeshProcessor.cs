@@ -26,9 +26,11 @@ namespace S1MAPI.Gltf.Processing
         /// </summary>
         /// <param name="gltf">The parsed GLTF root object</param>
         /// <param name="binaryBuffer">The binary buffer containing mesh data</param>
+        /// <param name="options">Controls generation of missing normals and tangents</param>
         /// <returns>List of processed meshes with material indices</returns>
-        public static List<GltfMeshResult> ProcessMeshes(GltfRoot gltf, byte[]? binaryBuffer)
+        public static List<GltfMeshResult> ProcessMeshes(GltfRoot gltf, byte[]? binaryBuffer, GltfImportOptions? options = null)
         {
+            options ??= new GltfImportOptions();
             List<GltfMeshResult> results = new List<GltfMeshResult>();
 
             if (gltf.meshes == null) return results;
@@ -49,76 +51,78 @@ namespace S1MAPI.Gltf.Processing
                 List<int[]> allSubmeshIndices = new List<int[]>();
                 List<int> materialIndices = new List<int>();
 
+                List<int> missingNormals = new List<int>();
+                List<int> missingTangents = new List<int>();
+                bool hasNormals = false;
+                bool hasUvs = false;
+                bool hasTangents = false;
+                bool hasBoneWeights = false;
                 int vertexOffset = 0;
 
                 if (gltfMesh.primitives != null)
                 {
                     foreach (GltfPrimitive primitive in gltfMesh.primitives)
                     {
-                        if (primitive.attributes == null)
+                        // Validate topology before appending anything so skipped primitives cannot
+                        // shift later vertex attributes or material slots.
+                        if (primitive.mode != GltfPrimitiveMode.Triangles)
                         {
+                            DebugLog.Warning($"Unsupported primitive mode {primitive.mode} in mesh '{unityMesh.name}'. Only TRIANGLES is supported. Skipping.");
                             continue;
                         }
 
-                        // Positions
-                        int vertexCount = 0;
-                        if (primitive.attributes.TryGetValue("POSITION", out int posIndex))
+                        if (primitive.attributes == null || !primitive.attributes.TryGetValue("POSITION", out int posIndex))
                         {
-                            Vector3[] verts = ReadVector3Array(gltf, binaryBuffer, posIndex, true);
-                            vertexCount = verts.Length;
-                            allVertices.AddRange(verts);
+                            DebugLog.Warning($"Primitive without POSITION in mesh '{unityMesh.name}'. Skipping.");
+                            continue;
                         }
 
-                        // Normals
-                        if (primitive.attributes.TryGetValue("NORMAL", out int normIndex))
+                        Vector3[] verts = ReadVector3Array(gltf, binaryBuffer, posIndex, true);
+                        int vertexCount = verts.Length;
+                        int[] indices = primitive.indices.HasValue
+                            ? ReadIntArray(gltf, binaryBuffer, primitive.indices.Value)
+                            : Enumerable.Range(0, vertexCount).ToArray();
+                        if (vertexCount == 0 || indices.Length == 0 || indices.Length % 3 != 0 ||
+                            indices.Any(index => index < 0 || index >= vertexCount))
                         {
-                            allNormals.AddRange(ReadVector3Array(gltf, binaryBuffer, normIndex, true));
+                            DebugLog.Warning($"Invalid triangle indices in mesh '{unityMesh.name}'. Skipping primitive.");
+                            continue;
                         }
 
-                        // UVs
-                        if (primitive.attributes.TryGetValue("TEXCOORD_0", out int uvIndex))
+                        Vector3[]? normals = primitive.attributes.TryGetValue("NORMAL", out int normIndex)
+                            ? ReadVector3Array(gltf, binaryBuffer, normIndex, true) : null;
+                        Vector2[]? uvs = primitive.attributes.TryGetValue("TEXCOORD_0", out int uvIndex)
+                            ? ReadVector2Array(gltf, binaryBuffer, uvIndex, false) : null;
+                        Vector4[]? tangents = primitive.attributes.TryGetValue("TANGENT", out int tanIndex)
+                            ? ReadVector4Array(gltf, binaryBuffer, tanIndex, true) : null;
+                        BoneWeight[]? boneWeights = primitive.attributes.TryGetValue("JOINTS_0", out int jointsIndex) &&
+                            primitive.attributes.TryGetValue("WEIGHTS_0", out int weightsIndex)
+                            ? ReadBoneWeights(gltf, binaryBuffer, jointsIndex, weightsIndex) : null;
+                        if ((normals != null && normals.Length != vertexCount) ||
+                            (uvs != null && uvs.Length != vertexCount) ||
+                            (tangents != null && tangents.Length != vertexCount) ||
+                            (boneWeights != null && boneWeights.Length != vertexCount))
                         {
-                            Vector2[] uvs = ReadVector2Array(gltf, binaryBuffer, uvIndex, false);
-                            FlipUVs(uvs);
-                            allUvs.AddRange(uvs);
+                            DebugLog.Warning($"Mismatched vertex attribute counts in mesh '{unityMesh.name}'. Skipping primitive.");
+                            continue;
                         }
 
-                        // Tangents
-                        if (primitive.attributes.TryGetValue("TANGENT", out int tanIndex))
-                        {
-                            allTangents.AddRange(ReadVector4Array(gltf, binaryBuffer, tanIndex, true));
-                        }
+                        if (uvs != null) FlipUVs(uvs);
+                        allVertices.AddRange(verts);
+                        allNormals.AddRange(normals ?? new Vector3[vertexCount]);
+                        allUvs.AddRange(uvs ?? new Vector2[vertexCount]);
+                        allTangents.AddRange(tangents ?? new Vector4[vertexCount]);
+                        allBoneWeights.AddRange(boneWeights ?? new BoneWeight[vertexCount]);
+                        hasNormals |= normals != null;
+                        hasUvs |= uvs != null;
+                        hasTangents |= tangents != null;
+                        hasBoneWeights |= boneWeights != null;
+                        if (normals == null) missingNormals.AddRange(Enumerable.Range(vertexOffset, vertexCount));
+                        if (tangents == null) missingTangents.AddRange(Enumerable.Range(vertexOffset, vertexCount));
 
-                        // Bone Weights
-                        if (primitive.attributes.TryGetValue("JOINTS_0", out int jointsIndex) &&
-                            primitive.attributes.TryGetValue("WEIGHTS_0", out int weightsIndex))
-                        {
-                            allBoneWeights.AddRange(ReadBoneWeights(gltf, binaryBuffer, jointsIndex, weightsIndex));
-                        }
-
-                        // Indices
-                        if (primitive.indices.HasValue)
-                        {
-                            int[] indices = ReadIntArray(gltf, binaryBuffer, primitive.indices.Value);
-                            FlipTriangles(indices);
-                            
-                            // Apply offset for combined mesh
-                            if (vertexOffset > 0)
-                            {
-                                for (int k = 0; k < indices.Length; k++)
-                                {
-                                    indices[k] += vertexOffset;
-                                }
-                            }
-                            
-                            allSubmeshIndices.Add(indices);
-                        }
-                        else
-                        {
-                            // Non-indexed geometry not supported in this simplified version
-                             DebugLog.Warning($"Non-indexed primitive in mesh '{unityMesh.name}'. Skipping.");
-                             allSubmeshIndices.Add(new int[0]);
-                        }
+                        FlipTriangles(indices);
+                        for (int i = 0; i < indices.Length; i++) indices[i] += vertexOffset;
+                        allSubmeshIndices.Add(indices);
 
                         materialIndices.Add(primitive.material ?? -1); // -1 means default material
                         vertexOffset += vertexCount;
@@ -128,16 +132,16 @@ namespace S1MAPI.Gltf.Processing
                 // Assign to Unity Mesh
 #if IL2CPP
                 unityMesh.SetVertices(allVertices.ToIl2CppList());
-                if (allNormals.Count > 0) unityMesh.SetNormals(allNormals.ToIl2CppList());
-                if (allUvs.Count > 0) unityMesh.SetUVs(0, allUvs.ToIl2CppList());
-                if (allTangents.Count > 0) unityMesh.SetTangents(allTangents.ToIl2CppList());
+                if (hasNormals) unityMesh.SetNormals(allNormals.ToIl2CppList());
+                if (hasUvs) unityMesh.SetUVs(0, allUvs.ToIl2CppList());
+                if (hasTangents) unityMesh.SetTangents(allTangents.ToIl2CppList());
 #else
                 unityMesh.SetVertices(allVertices);
-                if (allNormals.Count > 0) unityMesh.SetNormals(allNormals);
-                if (allUvs.Count > 0) unityMesh.SetUVs(0, allUvs);
-                if (allTangents.Count > 0) unityMesh.SetTangents(allTangents);
+                if (hasNormals) unityMesh.SetNormals(allNormals);
+                if (hasUvs) unityMesh.SetUVs(0, allUvs);
+                if (hasTangents) unityMesh.SetTangents(allTangents);
 #endif
-                if (allBoneWeights.Count > 0) unityMesh.boneWeights = allBoneWeights.ToArray();
+                if (hasBoneWeights) unityMesh.boneWeights = allBoneWeights.ToArray();
 
                 unityMesh.subMeshCount = allSubmeshIndices.Count;
                 for (int i = 0; i < allSubmeshIndices.Count; i++)
@@ -145,6 +149,22 @@ namespace S1MAPI.Gltf.Processing
                     unityMesh.SetTriangles(allSubmeshIndices[i], i);
                 }
 
+                // Generate only absent attributes; preserve authored data on other primitives.
+                if (options.GenerateMissingNormals && missingNormals.Count > 0)
+                {
+                    unityMesh.RecalculateNormals();
+                    var generatedNormals = unityMesh.normals;
+                    foreach (int index in missingNormals) allNormals[index] = generatedNormals[index];
+                    unityMesh.normals = allNormals.ToArray();
+                }
+                if (options.GenerateMissingTangents && missingTangents.Count > 0 && hasUvs &&
+                    (missingNormals.Count == 0 || options.GenerateMissingNormals))
+                {
+                    unityMesh.RecalculateTangents();
+                    var generatedTangents = unityMesh.tangents;
+                    foreach (int index in missingTangents) allTangents[index] = generatedTangents[index];
+                    unityMesh.tangents = allTangents.ToArray();
+                }
                 unityMesh.RecalculateBounds();
                 
                 results.Add(new GltfMeshResult
