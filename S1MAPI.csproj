@@ -10,6 +10,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Tests/**</DefaultItemExcludes>
     <Configurations>Mono;Il2cpp</Configurations>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
